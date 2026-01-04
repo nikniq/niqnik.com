@@ -258,4 +258,6 @@
             </script>
     </section>
 
+@include('partials.footer')
+
 @endsection
