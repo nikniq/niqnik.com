@@ -1,0 +1,56 @@
+@csrf
+@php
+    $domainInput = old('domains');
+    if ($domainInput === null && isset($license)) {
+        $domainInput = $license->domains->pluck('domain')->implode(PHP_EOL);
+    }
+@endphp
+<div class="stack" style="display:grid;gap:1rem;">
+    <label>
+        <span>Product</span>
+        <select name="product_id" {{ $products->isEmpty() ? 'disabled' : '' }} required style="width:100%;border:1px solid rgba(15,23,42,0.15);border-radius:0.9rem;padding:0.85rem 1rem;font-size:1rem;">
+            <option value="" disabled {{ old('product_id', $license->product_id ?? '') ? '' : 'selected' }}>Select a product</option>
+            @foreach ($products as $product)
+                <option value="{{ $product->id }}" {{ (int) old('product_id', $license->product_id ?? '') === $product->id ? 'selected' : '' }}>
+                    {{ $product->name }} ({{ $product->product_code }})
+                </option>
+            @endforeach
+        </select>
+    </label>
+    @if (!empty($license->identifier))
+        <div style="padding:0.85rem 1rem;border:1px dashed rgba(15,23,42,0.3);border-radius:0.9rem;font-family:monospace;background:rgba(15,23,42,0.03);">
+            Identifier: {{ $license->identifier }}
+        </div>
+    @endif
+    <label>
+        <span>Allowed domains</span>
+        <textarea name="domains" rows="3" style="width:100%;border:1px solid rgba(15,23,42,0.15);border-radius:0.9rem;padding:0.85rem 1rem;font-size:1rem;" placeholder="acme.com&#10;subsidiary.org">{{ $domainInput }}</textarea>
+        <small style="display:block;color:var(--muted);margin-top:0.35rem;">Enter one domain per line; leave blank for no restrictions.</small>
+    </label>
+    <label>
+        <span>Assigned user</span>
+        <select name="user_id" style="width:100%;border:1px solid rgba(15,23,42,0.15);border-radius:0.9rem;padding:0.85rem 1rem;font-size:1rem;">
+            <option value="" {{ old('user_id', $license->user_id ?? '') ? '' : 'selected' }}>Unassigned</option>
+            @foreach ($users as $user)
+                <option value="{{ $user->id }}" {{ (int) old('user_id', $license->user_id ?? '') === $user->id ? 'selected' : '' }}>
+                    {{ $user->name }} ({{ $user->email }})
+                </option>
+            @endforeach
+        </select>
+    </label>
+    <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;">
+        <label>
+            <span>Total seats</span>
+            <input type="number" name="seats_total" min="1" value="{{ old('seats_total', $license->seats_total ?? 1) }}" required>
+        </label>
+        <label>
+            <span>Expires on</span>
+            <input type="date" name="expires_at" value="{{ old('expires_at', optional($license->expires_at ?? null)->format('Y-m-d')) }}">
+        </label>
+    </div>
+</div>
+
+<div style="margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;">
+    <button type="submit">{{ $submitLabel }}</button>
+    <a class="link" href="{{ route('admin.licenses.index') }}" style="display:inline-flex;align-items:center;justify-content:center;padding:0.65rem 1rem;border:1px solid rgba(15,23,42,0.12);border-radius:0.9rem;background:#fff;box-shadow:0 6px 18px rgba(15,23,42,0.08);">Cancel</a>
+</div>
