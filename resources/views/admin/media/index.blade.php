@@ -37,9 +37,18 @@
         @forelse ($media as $m)
             <div style="width:160px;border:1px solid rgba(15,23,42,0.06);padding:0.5rem;border-radius:0.6rem;text-align:center;background:var(--bg);">
                 <div style="height:100px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-                    <img src="{{ Storage::disk($m->disk)->url($m->path) }}" alt="{{ $m->filename }}" style="max-width:100%;max-height:100%;object-fit:contain;" />
+                    @php($exists = Storage::disk($m->disk)->exists($m->path))
+                    @if($exists)
+                        <img src="{{ Storage::disk($m->disk)->url($m->path) }}" alt="{{ $m->filename }}" style="max-width:100%;max-height:100%;object-fit:contain;" />
+                    @else
+                        <div style="color:var(--error);font-size:0.85rem;">Missing file</div>
+                    @endif
                 </div>
                 <div style="margin-top:0.5rem;font-size:0.85rem;color:var(--muted);">{{ $m->filename }}</div>
+                @php($url = Storage::disk($m->disk)->url($m->path))
+                @if(! Storage::disk($m->disk)->exists($m->path))
+                    <div style="margin-top:0.25rem;font-size:0.75rem;color:var(--error);word-break:break-all;">{{ $url }}</div>
+                @endif
                 <div style="margin-top:0.5rem;display:flex;justify-content:center;gap:0.5rem;">
                     <form method="POST" action="{{ route('admin.media.destroy', $m) }}" onsubmit="return confirm('Delete this media?');">
                         @csrf
