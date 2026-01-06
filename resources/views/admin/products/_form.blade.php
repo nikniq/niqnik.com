@@ -47,6 +47,9 @@
                     <option value="">-- none --</option>
                     @foreach(($media ?? []) as $m)
                         <option value="{{ $m->id }}" data-url="{{ Storage::disk($m->disk)->url($m->path) }}" {{ (int)old('media_id', $product->media_id ?? 0) === $m->id ? 'selected' : '' }}>{{ $m->filename }}</option>
+
+                <input type="hidden" name="page" value="{{ old('page', request()->query('page')) }}">
+                <input type="hidden" name="per_page" value="{{ old('per_page', request()->query('per_page')) }}">
                     @endforeach
                 </select>
             </div>
