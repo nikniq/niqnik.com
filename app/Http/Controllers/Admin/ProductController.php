@@ -12,10 +12,16 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    public function index(): View
+    public function index(\Illuminate\Http\Request $request): View
     {
+        $perPage = (int) $request->query('per_page', 12);
+        if ($perPage <= 0) {
+            $perPage = 12;
+        }
+        $perPage = min(max($perPage, 5), 200);
+
         return view('admin.products.index', [
-            'products' => Product::orderBy('name')->paginate(12),
+            'products' => Product::orderBy('name')->paginate($perPage),
         ]);
     }
 

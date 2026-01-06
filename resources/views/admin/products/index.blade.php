@@ -72,8 +72,30 @@
             </tbody>
         </table>
     </div>
-    <div style="margin-top:1rem;">
-        {{ $products->links() }}
-    </div>
+    @if($products->lastPage() > 1)
+        <div style="margin-top:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+            <div style="font-size:0.9rem;color:var(--muted);">
+                Showing {{ $products->firstItem() }}–{{ $products->lastItem() }} of {{ $products->total() }}
+            </div>
+
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+                @if($products->onFirstPage())
+                    <span style="opacity:0.5;padding:0.4rem 0.75rem;border-radius:0.5rem;border:1px solid rgba(15,23,42,0.06);">Prev</span>
+                @else
+                    <a href="{{ $products->previousPageUrl() }}" style="padding:0.4rem 0.75rem;border-radius:0.5rem;border:1px solid rgba(15,23,42,0.06);">Prev</a>
+                @endif
+
+                <span style="font-size:0.9rem;color:var(--muted);">Page {{ $products->currentPage() }} of {{ $products->lastPage() }}</span>
+
+                @if($products->hasMorePages())
+                    <a href="{{ $products->nextPageUrl() }}" style="padding:0.4rem 0.75rem;border-radius:0.5rem;border:1px solid rgba(15,23,42,0.06);">Next</a>
+                @else
+                    <span style="opacity:0.5;padding:0.4rem 0.75rem;border-radius:0.5rem;border:1px solid rgba(15,23,42,0.06);">Next</span>
+                @endif
+            </div>
+        </div>
+    @else
+        <div style="margin-top:1rem;color:var(--muted);">Showing all {{ $products->total() }} products.</div>
+    @endif
 </div>
 @endsection
