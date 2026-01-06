@@ -16,9 +16,17 @@ class MediaController extends Controller
         $this->middleware('auth');
     }
 
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $media = Media::orderBy('created_at', 'desc')->paginate(30);
+        $perPage = (int) $request->query('per_page', 30);
+        if ($perPage <= 0) {
+            $perPage = 30;
+        }
+        // clamp reasonably
+        $perPage = min(max($perPage, 5), 200);
+
+        $media = Media::orderBy('created_at', 'desc')->paginate($perPage);
+
         return view('admin.media.index', compact('media'));
     }
 

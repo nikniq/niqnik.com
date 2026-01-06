@@ -62,6 +62,6 @@
         @endforelse
     </div>
 
-    <div style="margin-top:1rem;">{{ $media->links() }}</div>
+    <div style="margin-top:1rem;">{{ $media->withQueryString()->links() }}</div>
 </div>
 @endsection
