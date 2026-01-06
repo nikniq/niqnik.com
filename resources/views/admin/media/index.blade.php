@@ -62,6 +62,30 @@
         @endforelse
     </div>
 
-    <div style="margin-top:1rem;">{{ $media->withQueryString()->links() }}</div>
+    @if($media->lastPage() > 1)
+        <div style="margin-top:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+            <div style="font-size:0.9rem;color:var(--muted);">
+                Showing {{ $media->firstItem() }}–{{ $media->lastItem() }} of {{ $media->total() }}
+            </div>
+
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+                @if($media->onFirstPage())
+                    <span style="opacity:0.5;padding:0.4rem 0.75rem;border-radius:0.5rem;border:1px solid rgba(15,23,42,0.06);">Prev</span>
+                @else
+                    <a href="{{ $media->previousPageUrl() }}" style="padding:0.4rem 0.75rem;border-radius:0.5rem;border:1px solid rgba(15,23,42,0.06);">Prev</a>
+                @endif
+
+                <span style="font-size:0.9rem;color:var(--muted);">Page {{ $media->currentPage() }} of {{ $media->lastPage() }}</span>
+
+                @if($media->hasMorePages())
+                    <a href="{{ $media->nextPageUrl() }}" style="padding:0.4rem 0.75rem;border-radius:0.5rem;border:1px solid rgba(15,23,42,0.06);">Next</a>
+                @else
+                    <span style="opacity:0.5;padding:0.4rem 0.75rem;border-radius:0.5rem;border:1px solid rgba(15,23,42,0.06);">Next</span>
+                @endif
+            </div>
+        </div>
+    @else
+        <div style="margin-top:1rem;color:var(--muted);">Showing all {{ $media->total() }} media items.</div>
+    @endif
 </div>
 @endsection
