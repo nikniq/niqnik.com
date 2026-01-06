@@ -57,7 +57,16 @@ class MediaController extends Controller
                 'size' => $file->getSize(),
             ]);
 
-            return redirect()->route('admin.media.index')->with('success', 'Uploaded.');
+            $exists = false;
+            try {
+                $exists = Storage::disk($disk)->exists($stored);
+            } catch (\Exception $e) {
+                Log::warning('Could not verify stored file existence', ['disk' => $disk, 'path' => $stored, 'error' => $e->getMessage()]);
+            }
+
+            $message = 'Uploaded.' . ($exists ? ' File present on disk.' : ' File NOT found on disk.');
+
+            return redirect()->route('admin.media.index')->with('success', $message);
         } catch (\Exception $e) {
             Log::error('Media upload failed', [
                 'original_name' => $file ? $file->getClientOriginalName() : null,
