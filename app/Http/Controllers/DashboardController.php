@@ -5,11 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\License;
 use App\Models\Product;
 use App\Models\Favourite;
+use App\Models\PlayerGameStat;
+use App\Services\GameStatsService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    public function __construct(private GameStatsService $gameStatsService)
+    {
+    }
+
     public function index(): View
     {
         $licenseEnabled = (bool) config('license.enabled');
@@ -25,7 +31,22 @@ class DashboardController extends Controller
                 ->filter();
         }
 
+        $gameStats = collect();
+        $ranks = [];
+        if (config('sso.enabled') && Auth::check()) {
+            $gameStats = PlayerGameStat::with('client.product')
+                ->where('user_id', Auth::id())
+                ->whereHas('client', fn ($q) => $q->where('is_enabled', true))
+                ->orderByDesc('last_played_at')
+                ->get();
+            foreach ($gameStats as $row) {
+                $ranks[$row->game_client_id] = $this->gameStatsService->rankFor($row->client, Auth::user());
+            }
+        }
+
         return view('dashboard', [
+            'gameStats' => $gameStats,
+            'ranks' => $ranks,
             'user' => Auth::user(),
             'licenses' => $licenseEnabled
                 ? License::with(['product', 'domains'])->where('user_id', Auth::id())->orderBy('expires_at')->get()

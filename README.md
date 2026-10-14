@@ -24,6 +24,17 @@ The `/` route renders `resources/views/themes/{theme}/frontpage.blade.php`, sele
 - Signed-in users can favourite games (`POST /favorites`). Favourites sort to the top of the games frontpage.
 - `/games` supports `?q=` search and returns JSON when requested with an `Accept: application/json` header.
 
+### Game SSO and stats
+Nikniq is the central login for the games on its subdomains and keeps their statistics.
+
+- Admins register each game at `/admin/game-clients`. A client gets a `client_id`, a secret (shown once), a slug, and a list of allowed redirect URIs. Browser-only games are marked **public** and use PKCE instead of a secret.
+- Sign-in is a standard authorization-code flow: the game sends the player to `/sso/authorize`, Nikniq signs them in and redirects back with a one-time code, and the game exchanges it at `POST /api/sso/token` for a Bearer player token.
+- Games report activity to `POST /api/games/{slug}/events` with that token. Nikniq stores every event and keeps per-player aggregates: plays, wins, best and total score, time played, last level.
+- `GET /api/sso/me` returns the player, their stats for that game, and their rank. `GET /api/games/{slug}/leaderboard` is public.
+- Players see all their games on `/dashboard` and each game's standings at `/games/{slug}/leaderboard`.
+
+See [Integrating a game](#integrating-a-game) below.
+
 ### Shop and licensing
 - `/shop` lists products; `/shop/{product_code}` shows one.
 - Authenticated users buy licenses from `/dashboard` with PayPal (`POST /paypal/orders` then `POST /dashboard/licenses`) or Stripe (`POST /stripe/intents` then `POST /stripe/complete`). Totals are `price × seats`; duration comes from the product's `duration_months`.
@@ -100,12 +111,71 @@ All feature flags live in `.env`. Key ones:
 | `API_LAB_ENABLED` | `true` | `/api-lab` |
 | `POSTS_ENABLED` | `true` | WordPress posts bridge |
 | `ADMIN_SERVERS_ENABLED` | `true` | Admin servers CRUD |
+| `SSO_ENABLED` | `true` | Game sign-on and stats API |
+| `SSO_CODE_TTL_MINUTES` / `SSO_TOKEN_TTL_DAYS` | `5` / `30` | Authorization code and player token lifetimes |
 | `ADMIN_EXTERNAL_LOGS_ENABLED` | `true` | External log receiver and viewer |
 | `LOGIN_TWO_FACTOR_ENABLED` | `false` | Email 2FA |
 | `PAYPAL_*` | | PayPal REST credentials, `sandbox` or `live` |
 | `STRIPE_SECRET` / `STRIPE_PUBLIC_KEY` | | Stripe credentials |
 | `GOOGLE_*` / `META_*` | | OAuth credentials |
 | `WP_DB_*` | | WordPress database for posts |
+
+## Integrating a game
+
+1. **Register the game** at `/admin/game-clients`. Add the exact callback URL the game will use as a redirect URI. Tick *Public client* for a static JS game with no server. Copy the secret when it is shown.
+
+2. **Send the player to Nikniq** when they press "Sign in":
+
+   ```
+   https://nikniq.com/sso/authorize
+       ?client_id=CLIENT_ID
+       &redirect_uri=https://chopper.nikniq.com/auth/callback
+       &state=RANDOM
+       &code_challenge=BASE64URL(SHA256(verifier))   # public clients, optional otherwise
+       &code_challenge_method=S256
+   ```
+
+   Nikniq redirects back to `redirect_uri?code=...&state=...` within 5 minutes. On failure it sends `error` and `error_description` instead, or shows an error page if the redirect URI is not registered.
+
+3. **Exchange the code** for a player token. Confidential clients do this server-side with the secret; public clients send the PKCE verifier.
+
+   ```bash
+   curl -X POST https://nikniq.com/api/sso/token \
+     -H 'Content-Type: application/json' \
+     -d '{"grant_type":"authorization_code","client_id":"CLIENT_ID","client_secret":"SECRET",
+          "code":"CODE","redirect_uri":"https://chopper.nikniq.com/auth/callback"}'
+   ```
+
+   Response: `{ token_type, access_token, expires_at, player: {id,name,email,avatar}, stats }`. Tokens last 30 days. Store the token, not the code.
+
+4. **Report events** as the player plays:
+
+   ```bash
+   curl -X POST https://nikniq.com/api/games/chopper/events \
+     -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' \
+     -d '{"event":"game_over","score":1240,"won":false,"duration_seconds":87,"level":"cave-3","metadata":{"deaths":2}}'
+   ```
+
+   Fields: `event` (required, `[a-z0-9_.-]`), `score`, `level`, `duration_seconds`, `won`, `metadata` (object, up to 50 keys), `occurred_at`. Send `{"events":[...]}` for a batch of up to 50. Events named `game_over`, `finish`, `complete`, `round_end`, or `session_end` count as a play. The response includes the updated stats and rank.
+
+5. **Read back**: `GET /api/sso/me` with the token, or `GET /api/games/chopper/leaderboard?limit=25` without one. `POST /api/sso/logout` revokes the token.
+
+Browser-only games can call these endpoints directly: Laravel's default CORS config allows any origin on `/api/*`. All SSO endpoints are rate limited.
+
+Minimal browser flow for a public client:
+
+```js
+const verifier = base64url(crypto.getRandomValues(new Uint8Array(32)));
+sessionStorage.setItem('pkce', verifier);
+const challenge = base64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
+location.href = `https://nikniq.com/sso/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(CALLBACK)}&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
+
+// on the callback page
+const code = new URLSearchParams(location.search).get('code');
+const res = await fetch('https://nikniq.com/api/sso/token', {method:'POST', headers:{'Content-Type':'application/json'},
+  body: JSON.stringify({grant_type:'authorization_code', client_id: CLIENT_ID, code, redirect_uri: CALLBACK, code_verifier: sessionStorage.getItem('pkce')})});
+const { access_token, player } = await res.json();
+```
 
 ## Artisan commands
 
@@ -126,7 +196,8 @@ Tests run against an in-memory sqlite database configured in `phpunit.xml`, so n
 app/Http/Controllers/          public controllers (Games, Shop, Whois, Cert, Subdomain, payments, licenses)
 app/Http/Controllers/Admin/    admin CRUD and log viewers
 app/Http/Controllers/Api/      license validation and external log receiver
-app/Services/                  PayPalClient, StripeClient, EventLogger, ShopService
+app/Services/                  PayPalClient, StripeClient, EventLogger, ShopService, GameStatsService
+app/Http/Controllers/Sso/      /sso/authorize for game sign-in
 config/                        one file per feature flag group (games, shop, license, social, ...)
 resources/views/themes/        one folder per frontpage theme
 resources/views/admin/         admin views

@@ -24,6 +24,9 @@ use App\Http\Controllers\WhoisController;
 use App\Http\Controllers\WpPostController;
 use App\Http\Controllers\CertController;
 use App\Http\Controllers\SubdomainController;
+use App\Http\Controllers\Sso\AuthorizeController as SsoAuthorizeController;
+use App\Http\Controllers\GameStatsController;
+use App\Http\Controllers\Admin\GameClientController as AdminGameClientController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -79,6 +82,15 @@ if (config('shop.enabled')) {
 // Games frontpage
 if (config('games.enabled')) {
     Route::get('/games', [App\Http\Controllers\GamesController::class, 'index'])->name('games.index');
+}
+
+// Game single sign-on: games send players here, and get a one-time code back.
+if (config('sso.enabled')) {
+    Route::get('/sso/authorize', SsoAuthorizeController::class)
+        ->middleware(['auth', 'throttle:30,1'])
+        ->name('sso.authorize');
+    Route::get('/games/{game}/leaderboard', [GameStatsController::class, 'leaderboard'])
+        ->name('games.leaderboard');
 }
 
 // WordPress posts index and single post
@@ -174,6 +186,10 @@ Route::prefix('admin')
         Route::resource('users', AdminUserController::class)->except(['show']);
         if (config('admin.servers_enabled')) {
             Route::resource('servers', AdminServerController::class)->except(['show']);
+        }
+        if (config('sso.enabled')) {
+            Route::resource('game-clients', AdminGameClientController::class)->except(['show']);
+            Route::post('game-clients/{game_client}/rotate-secret', [AdminGameClientController::class, 'rotateSecret'])->name('game-clients.rotate-secret');
         }
         Route::get('tools/license-validation', LicenseValidationTestController::class)->name('tools.license-validation');
         Route::get('logs', [AdminLogController::class, 'index'])->name('logs.index');

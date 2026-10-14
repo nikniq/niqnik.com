@@ -24,4 +24,5 @@ class EventLog extends Model
     public const TYPE_USER_UPDATE = 'user_update';
     public const TYPE_LICENSE_UPDATE = 'license_update';
     public const TYPE_PRODUCT_UPDATE = 'product_update';
+    public const TYPE_GAME_LOGIN = 'game_login';
 }

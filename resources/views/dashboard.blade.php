@@ -38,6 +38,9 @@
             @if (config('admin.servers_enabled'))
                 <a class="link" href="{{ route('admin.servers.index') }}" style="display:block;text-align:center;padding:0.65rem 0.9rem;border:1px solid rgba(15,23,42,0.12);border-radius:0.9rem;background:#fff;box-shadow:0 6px 18px rgba(15,23,42,0.08);font-weight:600;">Manage servers</a>
             @endif
+            @if (config('sso.enabled'))
+                <a class="link" href="{{ route('admin.game-clients.index') }}" style="display:block;text-align:center;padding:0.65rem 0.9rem;border:1px solid rgba(15,23,42,0.12);border-radius:0.9rem;background:#fff;box-shadow:0 6px 18px rgba(15,23,42,0.08);font-weight:600;">Game clients</a>
+            @endif
             <a class="link" href="{{ route('admin.event-logs.index') }}" style="display:block;text-align:center;padding:0.65rem 0.9rem;border:1px solid rgba(15,23,42,0.12);border-radius:0.9rem;background:#fff;box-shadow:0 6px 18px rgba(15,23,42,0.08);font-weight:600;">Logs</a>
             @if(config('license.enabled') && config('license.public_validation'))
                 <a class="link" href="{{ route('admin.tools.license-validation') }}" style="display:block;text-align:center;padding:0.65rem 0.9rem;border:1px solid rgba(15,23,42,0.12);border-radius:0.9rem;background:#fff;box-shadow:0 6px 18px rgba(15,23,42,0.08);font-weight:600;">License validation</a>
@@ -186,6 +189,46 @@
         @endif
     @endif
     </section>
+@endif
+
+@if (config('sso.enabled'))
+<section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+        <div>
+            <p class="eyebrow" style="margin-bottom:0.35rem;">Your games</p>
+            <h2 style="margin:0;">Stats across games</h2>
+        </div>
+        <span style="font-size:0.9rem;color:var(--muted);">Sign in to any game with your Nikniq account and it reports back here</span>
+    </div>
+    <div style="margin-top:1rem;">
+        @if ($gameStats->isEmpty())
+            <p class="hint">No game activity yet. Pick a game below and sign in with Nikniq when it asks.</p>
+        @else
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;">
+                @foreach ($gameStats as $row)
+                    @php $client = $row->client; @endphp
+                    <div style="border:1px solid rgba(15,23,42,0.1);border-radius:1rem;padding:1rem 1.1rem;background:#fff;">
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:0.5rem;">
+                            <strong>{{ $client->name }}</strong>
+                            <span style="color:var(--muted);font-size:0.85rem;">{{ $row->last_played_at?->diffForHumans() }}</span>
+                        </div>
+                        <dl class="details" style="margin:0.75rem 0 0;grid-template-columns:repeat(3,1fr);gap:0.5rem;">
+                            <div><dt>Best</dt><dd>{{ $row->best_score !== null ? number_format($row->best_score) : '—' }}</dd></div>
+                            <div><dt>Plays</dt><dd>{{ number_format($row->plays) }}</dd></div>
+                            <div><dt>Wins</dt><dd>{{ number_format($row->wins) }}</dd></div>
+                        </dl>
+                        <div style="display:flex;gap:0.75rem;margin-top:0.75rem;flex-wrap:wrap;">
+                            @if ($client->playUrl())
+                                <a class="link" href="{{ $client->playUrl() }}" target="_blank" rel="noopener">Play</a>
+                            @endif
+                            <a class="link" href="{{ route('games.leaderboard', $client) }}">Leaderboard{{ isset($ranks[$client->id]) ? ' · #'.$ranks[$client->id] : '' }}</a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+</section>
 @endif
 
 <section class="card">
