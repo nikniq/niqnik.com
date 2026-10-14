@@ -32,11 +32,13 @@ return [
         [
             'title' => 'Chopper',
             'slug' => 'chopper',
+            'url' => 'https://chopper.nikniq.com',
             'description' => 'Pilot a helicopter through tight caverns and dodge obstacles in this arcade flyer.',
         ],
         [
             'title' => 'Blockworld',
             'slug' => 'blockworld',
+            'url' => 'https://blockworld.nikniq.com',
             'description' => 'Build, mine, and explore a voxel sandbox world block by block.',
         ],
     ],
