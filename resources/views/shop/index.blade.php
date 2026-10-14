@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Shop · GD Login')
+@section('title', 'Shop · Nikniq')
 
 @section('content')
 @if(!config('shop.enabled'))

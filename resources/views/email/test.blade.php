@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Email Test · GD Login')
+@section('title', 'Email Test · Nikniq')
 
 @section('content')
 <header class="hero">
@@ -36,11 +36,11 @@
         </label>
         <label>
             <span>Subject</span>
-            <input type="text" name="subject" value="{{ old('subject', 'Test email from GD Login') }}" required>
+            <input type="text" name="subject" value="{{ old('subject', 'Test email from Nikniq') }}" required>
         </label>
         <label>
             <span>Message</span>
-            <textarea name="message" rows="6" required>{{ old('message', 'If you received this email, your GD Login mail configuration works!') }}</textarea>
+            <textarea name="message" rows="6" required>{{ old('message', 'If you received this email, your Nikniq mail configuration works!') }}</textarea>
         </label>
         <button type="submit">Send test email</button>
     </form>

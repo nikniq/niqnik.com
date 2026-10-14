@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Signed out · GD Login')
+@section('title', 'Signed out · Nikniq')
 
 @section('content')
 <header class="hero">
