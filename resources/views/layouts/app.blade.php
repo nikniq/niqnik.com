@@ -7,6 +7,10 @@
     <title>{{ config('site.name') }}</title>
     <style>
     :root{
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --panel: #ffffff;
+            --panel-alt: #0f172a;
             --muted: #6b7280;
             --primary: #2563eb;
             --primary-dark: #1e40af;
@@ -148,6 +152,18 @@
             border: 1px solid rgba(255, 255, 255, 0.25);
             background: rgba(255, 255, 255, 0.08);
             color: #fff;
+        }
+        .card.alt input::placeholder { color: rgba(255, 255, 255, 0.55); }
+        .card.alt .eyebrow, .card.alt .lead, .card.alt .hint { color: rgba(255, 255, 255, 0.75); }
+        .card.alt .link { color: #93c5fd; }
+        input:focus { outline: 2px solid var(--primary); outline-offset: 1px; border-color: var(--primary); }
+        .hint { color: var(--muted); font-size: 0.92rem; margin: 0; }
+        .field-help { display: block; margin-top: 0.3rem; font-size: 0.82rem; color: var(--muted); }
+        .sso-divider { margin: 0.75rem 0 0; padding-top: 0.75rem; border-top: 1px solid rgba(15,23,42,0.1); }
+        .sso-button {
+            width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            background: #fff; color: #0f172a; border: 1px solid rgba(15,23,42,0.15);
+            box-shadow: 0 8px 18px rgba(15,23,42,0.08); font-weight: 700;
         }
         button {
             border: none;

@@ -12,54 +12,59 @@
 </header>
 
 <div class="grid">
-    <section class="card alt">
+    <section class="card">
         <h2>Create account</h2>
+        @if ($errors->any())
+            <div class="banner error" role="alert">
+                <ul style="margin:0;padding-left:1.25rem;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <form method="POST" action="{{ route('register') }}">
             @csrf
-            @if ($errors->any())
-                <div class="banner error">
-                    <ul style="margin:0;padding-left:1.25rem;">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
             <label>
                 <span>Name</span>
-                <input type="text" name="name" value="{{ old('name') }}" required>
+                <input type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name" placeholder="Your name">
             </label>
             <label>
                 <span>Email</span>
-                <input type="email" name="email" value="{{ old('email') }}" required>
-            </label>
-            <label>
-                <span>Admin contact email (optional)</span>
-                <input type="email" name="admin_email" value="{{ old('admin_email') }}" placeholder="ops@example.com">
+                <input type="email" name="email" value="{{ old('email') }}" required autocomplete="email" placeholder="you@example.com">
             </label>
             <label>
                 <span>Password</span>
-                <input type="password" name="password" required>
+                <input type="password" name="password" required autocomplete="new-password" minlength="8">
+                <small class="field-help">At least 8 characters.</small>
             </label>
             <label>
                 <span>Confirm password</span>
-                <input type="password" name="password_confirmation" required>
+                <input type="password" name="password_confirmation" required autocomplete="new-password" minlength="8">
             </label>
             <label>
-                <span>Solve this to prove you're human: {{ $captchaQuestion ?? session('captcha.challenge') ?? '1 + 1' }}</span>
-                <input type="number" name="captcha" inputmode="numeric" min="0" required>
+                <span>Admin contact email <em style="font-style:normal;color:var(--muted);">(optional)</em></span>
+                <input type="email" name="admin_email" value="{{ old('admin_email') }}" autocomplete="off" placeholder="ops@example.com">
+                <small class="field-help">Where license and billing notices go, if different from your sign-in email.</small>
+            </label>
+            <label>
+                <span>Quick check: what is {{ $captchaQuestion ?? session('captcha.challenge') ?? '1 + 1' }}?</span>
+                <input type="number" name="captcha" inputmode="numeric" min="0" required autocomplete="off" placeholder="Answer">
             </label>
             <button type="submit">Create account</button>
-            @if (config('social.providers.google.enabled'))
-            <button type="button" onclick="window.location='{{ route('oauth.redirect', ['provider' => 'google']) }}'" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem;background:#fff;color:#0f172a;border:1px solid rgba(15,23,42,0.15);box-shadow:0 8px 18px rgba(15,23,42,0.08);">
-                <span style="font-weight:700;">Continue with Google</span>
-            </button>
+
+            @if (config('social.providers.google.enabled') || config('social.providers.meta.enabled'))
+            <div class="sso-divider stack" style="gap:0.6rem;">
+                <p class="eyebrow" style="margin:0 0 0.35rem;">Or continue with</p>
+                @if (config('social.providers.google.enabled'))
+                <a class="sso-button" href="{{ route('oauth.redirect', ['provider' => 'google']) }}" style="padding:0.85rem 1.2rem;border-radius:999px;text-decoration:none;">Google</a>
+                @endif
+                @if (config('social.providers.meta.enabled'))
+                <a class="sso-button" href="{{ route('oauth.redirect', ['provider' => 'meta']) }}" style="padding:0.85rem 1.2rem;border-radius:999px;text-decoration:none;">Meta</a>
+                @endif
+            </div>
             @endif
-            @if (config('social.providers.meta.enabled'))
-            <button type="button" onclick="window.location='{{ route('oauth.redirect', ['provider' => 'meta']) }}'" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem;background:#fff;color:#0f172a;border:1px solid rgba(15,23,42,0.15);box-shadow:0 8px 18px rgba(15,23,42,0.08);">
-                <span style="font-weight:700;">Continue with Meta</span>
-            </button>
-            @endif
+
             <p class="hint">Already have access? <a class="link" href="{{ route('login') }}">Sign in</a>.</p>
         </form>
     </section>
