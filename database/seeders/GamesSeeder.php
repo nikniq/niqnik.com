@@ -45,6 +45,28 @@ class GamesSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'name' => 'Chopper',
+                'product_code' => 'GAME-CHP-01',
+                'vendor' => 'External',
+                'category' => $category,
+                'description' => 'Pilot a helicopter through tight caverns and dodge obstacles in this arcade flyer.',
+                'price' => 0.00,
+                'duration_months' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Blockworld',
+                'product_code' => 'GAME-BLK-01',
+                'vendor' => 'External',
+                'category' => $category,
+                'description' => 'Build, mine, and explore a voxel sandbox world block by block.',
+                'price' => 0.00,
+                'duration_months' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

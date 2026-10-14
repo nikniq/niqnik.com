@@ -29,3 +29,8 @@ yarn-error.log
 /.vscode
 /.zed
 .DS_Store
+
+# cx.sh local settings (hosts and accounts) and its output
+vars.sh
+/log
+/backups

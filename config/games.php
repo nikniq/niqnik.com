@@ -29,5 +29,15 @@ return [
             'slug' => 'neon-racers',
             'description' => 'Retro-style top-down racing with tight controls and online leaderboards.',
         ],
+        [
+            'title' => 'Chopper',
+            'slug' => 'chopper',
+            'description' => 'Pilot a helicopter through tight caverns and dodge obstacles in this arcade flyer.',
+        ],
+        [
+            'title' => 'Blockworld',
+            'slug' => 'blockworld',
+            'description' => 'Build, mine, and explore a voxel sandbox world block by block.',
+        ],
     ],
 ];
