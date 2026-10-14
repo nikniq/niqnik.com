@@ -34,7 +34,9 @@ The `/` route renders `resources/views/themes/{theme}/frontpage.blade.php`, sele
 ### Authentication
 - Email/password login and registration, with session regeneration.
 - Optional email two-factor code (`LOGIN_TWO_FACTOR_ENABLED`).
-- Social login via Laravel Socialite for Google and Meta (`GOOGLE_OAUTH_ENABLED`, `META_OAUTH_ENABLED`).
+- Social login via Laravel Socialite for Google and Meta (`GOOGLE_OAUTH_ENABLED`, `META_OAUTH_ENABLED`). Google sign-up requires a verified Google email. A Google email only takes over an existing password account when Google reports it verified; otherwise the user signs in with their password and links Google from the profile page.
+- Accounts created through Google have no password until the user sets one from `/profile`. Signed-in users can link or unlink a provider there; unlinking requires a password so nobody gets locked out.
+- Google profile photos are stored on `users.avatar` and shown on the profile page.
 - Profile page with password change at `/profile`.
 
 ### Admin console (`/admin`, requires `is_admin`)
@@ -116,7 +118,7 @@ All feature flags live in `.env`. Key ones:
 php artisan test
 ```
 
-Tests use the database configured in `.env`. Uncomment the sqlite lines in `phpunit.xml` to run against an in-memory database instead.
+Tests run against an in-memory sqlite database configured in `phpunit.xml`, so no MySQL is needed.
 
 ## Project layout
 

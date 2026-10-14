@@ -3,13 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -23,6 +24,8 @@ class User extends Authenticatable
         'admin_email',
         'provider_name',
         'provider_id',
+        'avatar',
+        'email_verified_at',
         'password',
         'is_admin',
     ];
@@ -54,5 +57,28 @@ class User extends Authenticatable
     public function favourites()
     {
         return $this->hasMany(Favourite::class);
+    }
+
+    /**
+     * OAuth-only accounts have no password until the user sets one.
+     */
+    public function hasPassword(): bool
+    {
+        return ! empty($this->password);
+    }
+
+    public function hasLinkedProvider(): bool
+    {
+        return ! empty($this->provider_name) && ! empty($this->provider_id);
+    }
+
+    public function providerLabel(): ?string
+    {
+        return match ($this->provider_name) {
+            'google' => 'Google',
+            'meta', 'facebook' => 'Meta',
+            null, '' => null,
+            default => ucfirst($this->provider_name),
+        };
     }
 }

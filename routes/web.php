@@ -94,16 +94,21 @@ Route::middleware('guest')->group(function () {
     Route::post('/login/two-factor', [LoginController::class, 'verifyTwoFactor'])->name('login.two-factor.verify');
     Route::post('/login/two-factor/resend', [LoginController::class, 'resendTwoFactor'])->name('login.two-factor.resend');
 
-    Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])
-        ->whereIn('provider', array_keys(config('social.providers', [])))
-        ->name('oauth.redirect');
-    Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback'])
-        ->whereIn('provider', array_keys(config('social.providers', [])))
-        ->name('oauth.callback');
-
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
     Route::post('/register', [RegisterController::class, 'store']);
 });
+
+// Social sign-in. Outside the guest group so a signed-in user can link a
+// provider to their account from the profile page.
+Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])
+    ->whereIn('provider', array_keys(config('social.providers', [])))
+    ->name('oauth.redirect');
+Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback'])
+    ->whereIn('provider', array_keys(config('social.providers', [])))
+    ->name('oauth.callback');
+Route::post('/auth/unlink', [SocialLoginController::class, 'unlink'])
+    ->middleware('auth')
+    ->name('oauth.unlink');
 
 Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth')

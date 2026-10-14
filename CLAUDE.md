@@ -29,6 +29,7 @@ Deployment: `deploy.sh` runs on the server (pull, composer if lockfile moved, mi
 - Games are `products` rows with `category = GAMES_CATEGORY` (default `Game`), price 0, duration 0. Thumbnails come from the `media` table via `products.media_id`; `GamesController` falls back to keyword-matched SVGs.
 - Licenses carry a unique `identifier` (`ABCD-EFGH-IJKL`) and optional `license_domains` allow-list. Validation lives in two places: `Api\LicenseValidationController` (POST, seats only) and `LicenseValidatorJsonController` (GET, seats and domain). Keep their response shapes aligned.
 - PayPal checkout caches the order server-side for 30 minutes and forgets it on capture. Stripe checkout verifies amount, currency, and metadata against the payment intent.
+- Social login lives in `SocialLoginController`. The callback serves four cases: returning provider user, verified-email match to an existing account, new account (password null), and a signed-in user linking a provider. OAuth-only users have `password = null`; `User::hasPassword()` gates unlinking and the current-password check.
 - Admin access is the `users.is_admin` flag enforced by `EnsureUserIsAdmin`. Admin routes live under `/admin` with the `admin.` name prefix.
 - Posts read from a separate WordPress database (`WP_DB_*` connection, `WpPost` model).
 
@@ -37,11 +38,11 @@ Deployment: `deploy.sh` runs on the server (pull, composer if lockfile moved, mi
 - Feature flags: one `config/{feature}.php` per feature, each reading an env var with a default. Register new routes inside the matching `if (config(...))` block.
 - Form validation goes in `app/Http/Requests`. Purchase and login events go through `EventLogger::log`.
 - Migrations are additive; never edit a shipped migration.
-- Tests use the `.env` database unless the sqlite lines in `phpunit.xml` are uncommented.
+- Tests run on in-memory sqlite via `phpunit.xml`; Socialite is mocked with `Socialite::shouldReceive('driver')` (see `tests/Feature/GoogleOAuthTest.php`).
 
 ## Known gaps
 
 - The media routes are duplicated inside the plain `auth` group in `routes/web.php`, exposing media management to non-admins. Remove them when touching that file.
 - Stripe `complete` does not record used payment intent IDs, so a succeeded intent can be replayed.
 - No `throttle` middleware on the public lookup endpoints or the license API.
-- Test coverage is minimal (three feature tests).
+- Test coverage is thin outside auth: checkout, license validation, and admin authorization have no tests.

@@ -38,6 +38,7 @@
                     <th style="padding:0 0.75rem;">Email</th>
                     <th style="padding:0 0.75rem;">Admin Email</th>
                     <th style="padding:0 0.75rem;">Role</th>
+                    <th style="padding:0 0.75rem;">Sign-in</th>
                     <th style="padding:0 0.75rem;">Created</th>
                     <th style="padding:0 0.75rem;">Actions</th>
                 </tr>
@@ -49,6 +50,7 @@
                         <td style="padding:0.9rem 0.75rem;">{{ $user->email }}</td>
                         <td style="padding:0.9rem 0.75rem;">{{ $user->admin_email ?? '—' }}</td>
                         <td style="padding:0.9rem 0.75rem;">{{ $user->is_admin ? 'Admin' : 'Member' }}</td>
+                        <td style="padding:0.9rem 0.75rem;">{{ $user->providerLabel() ?? ($user->hasPassword() ? 'Password' : '—') }}</td>
                         <td style="padding:0.9rem 0.75rem;">{{ $user->created_at->format('M j, Y') }}</td>
                         <td style="padding:0.9rem 0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
                             <a class="link" href="{{ route('admin.users.edit', $user) }}">Edit</a>
@@ -61,7 +63,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" style="padding:1rem 0.75rem;text-align:center;color:var(--muted);">
+                        <td colspan="7" style="padding:1rem 0.75rem;text-align:center;color:var(--muted);">
                             No users have been created yet.
                         </td>
                     </tr>

@@ -20,18 +20,28 @@ class ProfileController extends Controller
 
     public function updatePassword(Request $request): RedirectResponse
     {
-        $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'confirmed', Password::defaults()],
-        ]);
-
         $user = $request->user();
+
+        // Accounts created through Google or Meta have no password yet, so
+        // there is no "current password" to confirm the first time.
+        $rules = [
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ];
+        if ($user->hasPassword()) {
+            $rules['current_password'] = ['required', 'current_password'];
+        }
+
+        $request->validate($rules);
+
+        $hadPassword = $user->hasPassword();
+
         $user->forceFill([
             'password' => Hash::make($request->input('password')),
         ])->save();
 
         Auth::logoutOtherDevices($request->input('password'));
 
-        return redirect()->route('profile.show')->with('status', 'Password updated.');
+        return redirect()->route('profile.show')
+            ->with('status', $hadPassword ? 'Password updated.' : 'Password set. You can now sign in with your email and password too.');
     }
 }
