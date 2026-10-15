@@ -44,6 +44,7 @@ See [Integrating a game](#integrating-a-game) below.
 
 ### Authentication
 - Email/password login and registration, with session regeneration.
+- Password reset by email at `/forgot-password`. The response never reveals whether an address has an account. Links expire after an hour and work once. Google-only accounts can use it to add a password.
 - Optional email two-factor code (`LOGIN_TWO_FACTOR_ENABLED`).
 - Social login via Laravel Socialite for Google and Meta (`GOOGLE_OAUTH_ENABLED`, `META_OAUTH_ENABLED`). Google sign-up requires a verified Google email. A Google email only takes over an existing password account when Google reports it verified; otherwise the user signs in with their password and links Google from the profile page.
 - Accounts created through Google have no password until the user sets one from `/profile`. Signed-in users can link or unlink a provider there; unlinking requires a password so nobody gets locked out.

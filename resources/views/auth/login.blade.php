@@ -41,6 +41,7 @@
                 <input type="checkbox" name="remember" value="1" style="width:auto;"> Remember me
             </label>
             <button type="submit">Sign in</button>
+            <p class="hint" style="text-align:right;"><a class="link" href="{{ route('password.request') }}">Forgot your password?</a></p>
             @if (config('social.providers.google.enabled') || config('social.providers.meta.enabled'))
             <div style="margin:0.75rem 0;padding-top:0.75rem;border-top:1px solid rgba(15,23,42,0.1);" class="stack">
                 <p class="eyebrow" style="margin:0 0 0.35rem;">Single sign-on</p>
