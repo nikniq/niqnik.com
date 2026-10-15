@@ -63,15 +63,17 @@ if (config('apilab.enabled')) {
 }
 
 // Whois lookup endpoint used by the whois frontpage theme
-Route::post('/whois/lookup', [WhoisController::class, 'lookup'])->name('whois.lookup');
+Route::post('/whois/lookup', [WhoisController::class, 'lookup'])->middleware('throttle:10,1')->name('whois.lookup');
 // Cert lookup endpoint used by the cert frontpage theme
-Route::post('/cert/lookup', [CertController::class, 'lookup'])->name('cert.lookup');
+Route::post('/cert/lookup', [CertController::class, 'lookup'])->middleware('throttle:10,1')->name('cert.lookup');
 // Subdomains lookup endpoint used by the subdomains frontpage theme
-Route::post('/subdomains/lookup', [SubdomainController::class, 'lookup'])->name('subdomains.lookup');
+Route::post('/subdomains/lookup', [SubdomainController::class, 'lookup'])->middleware('throttle:10,1')->name('subdomains.lookup');
 if (config('license.enabled') && config('license.public_validation')) {
     Route::get('/license/{license_code}', PublicLicenseValidatorController::class)
+        ->middleware('throttle:60,1')
         ->name('licenses.validator');
-    Route::get('/license/validate/{key}', LicenseValidatorJsonController::class);
+    Route::get('/license/validate/{key}', LicenseValidatorJsonController::class)
+        ->middleware('throttle:60,1');
 }
 
 if (config('shop.enabled')) {
@@ -101,13 +103,13 @@ if (config('posts.enabled')) {
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
-    Route::post('/login', [LoginController::class, 'store']);
+    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:10,1');
     Route::get('/login/two-factor', [LoginController::class, 'showTwoFactorForm'])->name('login.two-factor.show');
-    Route::post('/login/two-factor', [LoginController::class, 'verifyTwoFactor'])->name('login.two-factor.verify');
+    Route::post('/login/two-factor', [LoginController::class, 'verifyTwoFactor'])->middleware('throttle:10,1')->name('login.two-factor.verify');
     Route::post('/login/two-factor/resend', [LoginController::class, 'resendTwoFactor'])->name('login.two-factor.resend');
 
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store']);
+    Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:10,1');
 });
 
 // Social sign-in. Outside the guest group so a signed-in user can link a
@@ -135,12 +137,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
-        // Media management
-        Route::get('media', [App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media.index');
-        Route::get('media/create', [App\Http\Controllers\Admin\MediaController::class, 'create'])->name('media.create');
-        Route::post('media', [App\Http\Controllers\Admin\MediaController::class, 'store'])->name('media.store');
-        Route::delete('media/{media}', [App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
-    
+
     // favourites
     Route::post('/favorites', [App\Http\Controllers\FavouriteController::class, 'toggle'])->name('favorites.toggle');
 });

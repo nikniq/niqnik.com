@@ -95,6 +95,14 @@ class StripePaymentController extends Controller
                 ->withInput($request->except('payment_intent_id'));
         }
 
+        // A succeeded intent can only ever mint one license.
+        if (License::where('payment_provider', 'stripe')->where('payment_reference', $intent->id)->exists()) {
+            $this->logPurchase(Auth::id(), $product->id, 'stripe', 'failed', 'Stripe payment already used.');
+            return back()
+                ->withErrors(['payment' => 'This Stripe payment has already been used for a license.'])
+                ->withInput($request->except('payment_intent_id'));
+        }
+
         $duration = max(1, (int) ($product->duration_months ?? 12));
         $domainInput = $data['domain'] ?? ($intent->metadata->domain ?? null);
 
@@ -103,6 +111,8 @@ class StripePaymentController extends Controller
             'user_id' => Auth::id(),
             'seats_total' => 1,
             'expires_at' => now()->addMonths($duration),
+            'payment_provider' => 'stripe',
+            'payment_reference' => $intent->id,
         ]);
 
         if ($domainInput) {

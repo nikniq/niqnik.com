@@ -95,6 +95,8 @@ class UserLicenseController extends Controller
                 'user_id' => $request->user()->id,
                 'seats_total' => $seats,
                 'expires_at' => now()->addMonths($duration),
+                'payment_provider' => 'paypal',
+                'payment_reference' => $captureSummary['transaction_id'] ?? $orderId,
             ]);
 
             if ($domainInput) {

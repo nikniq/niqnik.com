@@ -38,12 +38,11 @@ Deployment: `deploy.sh` runs on the server (pull, composer if lockfile moved, mi
 
 - Feature flags: one `config/{feature}.php` per feature, each reading an env var with a default. Register new routes inside the matching `if (config(...))` block.
 - Form validation goes in `app/Http/Requests`. Purchase and login events go through `EventLogger::log`.
+- Public or unauthenticated POST endpoints get `throttle` middleware in the route file. Purchased licenses record `payment_provider` and `payment_reference`, which is unique per provider, so a payment can never mint two licenses.
 - Migrations are additive; never edit a shipped migration.
 - Tests run on in-memory sqlite via `phpunit.xml`; Socialite is mocked with `Socialite::shouldReceive('driver')` (see `tests/Feature/GoogleOAuthTest.php`).
 
 ## Known gaps
 
-- The media routes are duplicated inside the plain `auth` group in `routes/web.php`, exposing media management to non-admins. Remove them when touching that file.
-- Stripe `complete` does not record used payment intent IDs, so a succeeded intent can be replayed.
-- No `throttle` middleware on the public lookup endpoints or the license API.
-- Test coverage is thin outside auth and SSO: checkout, license validation, and most admin CRUD have no tests.
+- Test coverage is thin outside auth, SSO, and the hardening suite: checkout happy paths, license validation, and most admin CRUD have no tests.
+- No `composer.lock` is committed, and Laravel 11 at the pinned range is flagged by composer's security audit. Upgrading to Laravel 12 and committing a lockfile is pending.

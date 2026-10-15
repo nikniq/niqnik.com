@@ -4,29 +4,43 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
-use Stripe\StripeClient as BaseStripeClient;
 use Stripe\PaymentIntent;
+use Stripe\StripeClient as BaseStripeClient;
 
 class StripeClient
 {
-    public function __construct(private BaseStripeClient $client)
+    private ?BaseStripeClient $client = null;
+
+    public function __construct(private ?string $secret = null, ?BaseStripeClient $client = null)
     {
+        $this->client = $client;
     }
 
     public static function make(): self
     {
-        $secret = config('stripe.secret');
-        if (! $secret) {
-            throw new RuntimeException('STRIPE_SECRET is not configured.');
+        return new self((string) config('stripe.secret') ?: null);
+    }
+
+    /**
+     * Build the SDK client on first use, so controllers that depend on this
+     * service can be constructed (e.g. by route:list) without a secret.
+     */
+    private function client(): BaseStripeClient
+    {
+        if ($this->client === null) {
+            if (! $this->secret) {
+                throw new RuntimeException('STRIPE_SECRET is not configured.');
+            }
+            $this->client = new BaseStripeClient($this->secret);
         }
 
-        return new self(new BaseStripeClient($secret));
+        return $this->client;
     }
 
     public function createPaymentIntent(int $amountCents, string $currency, array $metadata = []): PaymentIntent
     {
         try {
-            return $this->client->paymentIntents->create([
+            return $this->client()->paymentIntents->create([
                 'amount' => $amountCents,
                 'currency' => strtolower($currency),
                 'metadata' => $metadata,
@@ -48,7 +62,7 @@ class StripeClient
     public function retrievePaymentIntent(string $id): PaymentIntent
     {
         try {
-            return $this->client->paymentIntents->retrieve($id);
+            return $this->client()->paymentIntents->retrieve($id);
         } catch (\Throwable $e) {
             Log::warning('Stripe retrievePaymentIntent failed', [
                 'id' => $id,

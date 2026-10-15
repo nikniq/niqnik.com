@@ -18,6 +18,8 @@ class License extends Model
         'seats_total',
         'expires_at',
         'identifier',
+        'payment_provider',
+        'payment_reference',
     ];
 
     protected $casts = [

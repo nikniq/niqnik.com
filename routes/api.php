@@ -9,13 +9,16 @@ use App\Http\Controllers\LicenseValidatorJsonController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/licenses/validate', LicenseValidationController::class)
+	->middleware('throttle:60,1')
 	->name('api.licenses.validate');
 
 Route::get('/license/validate/{key}', LicenseValidatorJsonController::class)
+	->middleware('throttle:60,1')
 	->name('api.license.validate');
 
 if (config('admin.external_logs_enabled')) {
 	Route::post('/logs', EventLogReceiverController::class)
+		->middleware('throttle:120,1')
 		->name('api.logs.store');
 }
 
