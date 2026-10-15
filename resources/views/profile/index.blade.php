@@ -78,6 +78,60 @@
 </div>
 @endif
 
+@if (config('sso.enabled'))
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+        <h2 style="margin:0;">Connected games</h2>
+        @if ($connectedGames->isNotEmpty())
+            <form method="POST" action="{{ route('profile.games.revoke-all') }}" onsubmit="return confirm('Sign out of every game? Each one will ask you to sign in with Nikniq again.');">
+                @csrf
+                <button type="submit" class="secondary">Sign out of all games</button>
+            </form>
+        @endif
+    </div>
+    @if ($connectedGames->isEmpty())
+        <p class="hint" style="margin-top:0.75rem;">No game is signed in with your Nikniq account right now.</p>
+    @else
+        <p class="hint" style="margin-top:0.5rem;">These games can see your name, email, and avatar, and report your scores. Signing out a game ends its access until you sign in there again.</p>
+        <div style="overflow-x:auto;margin-top:0.75rem;">
+            <table style="width:100%;border-collapse:separate;border-spacing:0 0.5rem;">
+                <thead>
+                    <tr style="text-align:left;color:var(--muted);font-size:0.85rem;text-transform:uppercase;letter-spacing:0.1em;">
+                        <th style="padding:0 0.75rem;">Game</th>
+                        <th style="padding:0 0.75rem;">Connected</th>
+                        <th style="padding:0 0.75rem;">Last active</th>
+                        <th style="padding:0 0.75rem;">Sessions</th>
+                        <th style="padding:0 0.75rem;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($connectedGames as $row)
+                        <tr style="background:var(--bg);">
+                            <td style="padding:0.9rem 0.75rem;font-weight:600;">
+                                @if ($row->client->playUrl())
+                                    <a class="link" href="{{ $row->client->playUrl() }}" target="_blank" rel="noopener">{{ $row->client->name }}</a>
+                                @else
+                                    {{ $row->client->name }}
+                                @endif
+                            </td>
+                            <td style="padding:0.9rem 0.75rem;">{{ $row->connected_at?->diffForHumans() }}</td>
+                            <td style="padding:0.9rem 0.75rem;">{{ $row->last_used_at?->diffForHumans() ?? 'Not yet' }}</td>
+                            <td style="padding:0.9rem 0.75rem;">{{ $row->sessions }}</td>
+                            <td style="padding:0.9rem 0.75rem;text-align:right;">
+                                <form method="POST" action="{{ route('profile.games.revoke', $row->client) }}" onsubmit="return confirm('Sign out of {{ $row->client->name }}?');">
+                                    @csrf
+                                    <button type="submit" class="secondary">Sign out</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+</div>
+@endif
+
 <div class="card">
     <h2 style="margin-top:0;">{{ $user->hasPassword() ? 'Change password' : 'Set a password' }}</h2>
     @unless ($user->hasPassword())

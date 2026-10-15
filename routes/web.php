@@ -143,6 +143,10 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    if (config('sso.enabled')) {
+        Route::post('/profile/games/revoke-all', [App\Http\Controllers\ConnectedGamesController::class, 'revokeAll'])->name('profile.games.revoke-all');
+        Route::post('/profile/games/{game}/revoke', [App\Http\Controllers\ConnectedGamesController::class, 'revoke'])->name('profile.games.revoke');
+    }
 
     // favourites
     Route::post('/favorites', [App\Http\Controllers\FavouriteController::class, 'toggle'])->name('favorites.toggle');

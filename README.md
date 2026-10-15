@@ -32,6 +32,7 @@ Nikniq is the central login for the games on its subdomains and keeps their stat
 - Games report activity to `POST /api/games/{slug}/events` with that token. Nikniq stores every event and keeps per-player aggregates: plays, wins, best and total score, time played, last level.
 - `GET /api/sso/me` returns the player, their stats for that game, and their rank. `GET /api/games/{slug}/leaderboard` is public.
 - Players see all their games on `/dashboard` and each game's standings at `/games/{slug}/leaderboard`.
+- The profile page lists every game currently signed in with the player's account, with when it connected and was last active. Players can sign out of one game or all of them, which revokes the game's tokens immediately.
 
 See [Integrating a game](#integrating-a-game) below.
 

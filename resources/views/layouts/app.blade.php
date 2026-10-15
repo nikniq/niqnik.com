@@ -180,6 +180,18 @@
             transform: translateY(-1px);
             box-shadow: 0 12px 24px rgba(37, 99, 235, 0.35);
         }
+        button.secondary {
+            background: #fff;
+            color: var(--text);
+            border: 1px solid rgba(15, 23, 42, 0.18);
+            padding: 0.6rem 1rem;
+            font-size: 0.92rem;
+        }
+        button.secondary:hover {
+            border-color: var(--error);
+            color: var(--error);
+            box-shadow: 0 8px 18px rgba(220, 38, 38, 0.12);
+        }
         .link.button-reset {
             background: none;
             border: none;
